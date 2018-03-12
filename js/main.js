@@ -135,6 +135,7 @@ const updateVisible = (row, column) => {
     for (botNumber = 0; botNumber < robotList.length; botNumber++) {
       if (robotList[botNumber].id === robotId && (!robotList[botNumber].isVisible)) {
         robotList[botNumber].isVisible = true;
+        $("#attackbutton").prop('disabled', false);
         console.log(`Enemy ${robotList[botNumber].name} is now visible!`);
       }
     }
@@ -198,7 +199,6 @@ const generateRobot = (name, id, isOwn=true) => {
   // add empty player box
   let playerBox = document.createElement('div');
   playerBox.id = "box-" + id;
-  // playerBox.classList.add("row");
   playerBox.classList.add("player-box");
   $("#player-box").append(playerBox);
 }
@@ -213,16 +213,7 @@ const updateBoxes = () => {
 // incorrect logic - needs to rework so that the CD for all robots should be deducted simultaneously
 const getNextTurn = (forceSkip=false) => {
   console.log("forceskip: ", forceSkip);
-  if (forceSkip) {
-    gameState = "live";
-    // reset cooldown for current robot
-    for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
-      if (robotList[robotNumber].id === currentRobot.id) {
-        console.log(`reset cooldown for ${currentRobot.id}`);
-        robotList[robotNumber].cooldown = robotList[robotNumber].masterCooldown;
-      }
-    }
-  }
+  gameState = "live";
   console.log("game_state: ", gameState);
   while (gameState === "live") {
     // reduce cooldown for all visible robots
@@ -237,14 +228,14 @@ const getNextTurn = (forceSkip=false) => {
         if (robotList[robotNumber].isOwn === true){
           // player
           gameState = "pause";
-          $(".modal-text").text(`${robotList[robotNumber].name}'s turn`);
+          $("#turn-des").text(`${robotList[robotNumber].name}`);
           // console.log(robotList[0].cooldown);
           // console.log(robotList[1].cooldown);
           // console.log(robotList[2].cooldown);
 
           currentRobot.id = robotList[robotNumber].id;
-          $('#mainModal').modal('show');
-          console.log("modal should show");
+          // $('#mainModal').modal('show');
+          // console.log("modal should show");
           // reset cooldown
           robotList[robotNumber].cooldown = robotList[robotNumber].masterCooldown;
         } else {
@@ -271,7 +262,7 @@ $("body").keydown((e) => {
   if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
     e.preventDefault();
     // do nothing is modal is showing
-    if(!(($("#mainModal").data('bs.modal') || {})._isShown)){
+    if(gameState === "pause"){
       // get Position of the current robot
       robotPosition = getPosition(currentRobot.id);
       console.log("original_position", robotPosition);
@@ -291,9 +282,12 @@ $("body").keydown((e) => {
           // update FOG
           removeFog(nextRow, currentColumn);
           // resume game
+
           getNextTurn();
           updateBoxes();
           gameState="live";
+          $("#movebutton").prop('disabled', false);
+
         }
       }
 
@@ -311,7 +305,9 @@ $("body").keydown((e) => {
           removeFog(currentRow, nextColumn);
           // resume game
           getNextTurn();
+          updateBoxes();
           gameState="live";
+          $("#movebutton").prop('disabled', false);
         }
       }
 
@@ -329,7 +325,9 @@ $("body").keydown((e) => {
           removeFog(nextRow, currentColumn);
           // resume game
           getNextTurn();
+          updateBoxes();
           gameState="live";
+          $("#movebutton").prop('disabled', false);
         }
       }
 
@@ -347,22 +345,53 @@ $("body").keydown((e) => {
           removeFog(currentRow, nextColumn);
           // resume game
           getNextTurn();
+          updateBoxes();
           gameState="live";
+          $("#movebutton").prop('disabled', false);
         }
       }
 
       robotPosition = getPosition(currentRobot.id);
       console.log("new_position", robotPosition);
     }
-
-
   }
 });
 
-// event listener for short to close modal
-$("#mainModal").keyup(function(event) {
-  if (event.keyCode === 13) {
-    $("#okbutton").click();
+// add event listners for buttons
+$("#skipbutton").click(() => {
+  // gameState = "pause";
+  console.log("skip button clicked");
+  getNextTurn();
+  updateBoxes();
+  gameState="live";
+  $("#movebutton").prop('disabled', false);
+});
+
+$("#attackbutton").click(() => {
+  gameState = "pause";
+  console.log("attack clicked");
+});
+
+$("#movebutton").click(() => {
+  gameState = "pause";
+  console.log("move clicked");
+  $("#movebutton").prop('disabled', true);
+});
+
+// shortcut keys
+$("body").keydown((e) => {
+  if (e.keyCode === 65) {
+    if(!($("#attackbutton").prop('disabled'))) {
+      $("#attackbutton").click();
+    }
+  } else if (e.keyCode === 77) {
+    if(!($("#movebutton").prop('disabled'))) {
+      $("#movebutton").click();
+    }
+  } else if (e.keyCode === 83) {
+    if(!($("#skipbutton").prop('disabled'))) {
+      $("#skipbutton").click();
+    }
   }
 });
 

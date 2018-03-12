@@ -53,8 +53,8 @@
 
   .btn-secondary {
     border-radius: 0.1rem;
-    width: 20%;
-    height: 90%;
+    width: 30%;
+    height: 20%;
   }
 
   .modal-backdrop
@@ -74,8 +74,17 @@
     flex-basis: auto;
   }
 
+  .extended {
+    max-width: 35%;
+    flex-basis: 35%;
+  }
+
+  .control-box {
+    height: 30%;
+  }
+
   .player-box {
-    height: 20%;
+    height: 14%;
   }
   p {
     margin-bottom: 2px;
@@ -94,7 +103,14 @@
   <div class="row game-screen">
     <div id="checker-board" class="col-sm-9 no-flex">
     </div>
-    <div id="player-box" class="col-sm-3">
+    <div id="player-box" class="col-sm-3 extended">
+      <div id="control-box" class="control-box">
+        <p><b>TURN<b></p>
+        <h3 id="turn-des">PLAYER 1</h3>
+        <button id="skipbutton" type="button" class="btn btn-secondary" ><u>S</u>KIP</button>
+        <button id="attackbutton" type="button" class="btn btn-secondary" disabled><u>A</u>TTACK</button>
+        <button id="movebutton" type="button" class="btn btn-secondary" ><u>M</u>OVE</button>
+      </div>
     </div>
   </div>
 
@@ -107,9 +123,9 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button id="skipbutton" type="button" class="btn btn-secondary" data-dismiss="modal" onclick="getNextTurn(true)">SKIP</button>
+        <!-- <button id="skipbutton" type="button" class="btn btn-secondary" data-dismiss="modal" onclick="getNextTurn(true)">SKIP</button>
         <button id="attackbutton" type="button" class="btn btn-secondary" data-dismiss="modal">ATTACK</button>
-        <button id="okbutton" type="button" class="btn btn-secondary" data-dismiss="modal">MOVE</button>
+        <button id="okbutton" type="button" class="btn btn-secondary" data-dismiss="modal">MOVE</button> -->
       </div>
     </div>
   </div>
