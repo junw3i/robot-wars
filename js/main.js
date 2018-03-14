@@ -14,8 +14,8 @@ let robotList = [
     id: "robot1",
     name: "hardcoded1",
     isVisible: true,
-    cooldown: 3,
-    masterCooldown: 3,
+    cooldown: 6,
+    masterCooldown: 6,
     isOwn: true,
     hp: 100,
     ammo: 3,
@@ -26,8 +26,8 @@ let robotList = [
     id: "robot2",
     name: "hardcoded2",
     isVisible: true,
-    cooldown: 4,
-    masterCooldown: 4,
+    cooldown: 8,
+    masterCooldown: 8,
     isOwn: true,
     hp: 100,
     ammo: 2,
@@ -38,8 +38,8 @@ let robotList = [
     id: "robot3",
     name: "hardcoded3",
     isVisible: true,
-    cooldown: 5,
-    masterCooldown: 5,
+    cooldown: 10,
+    masterCooldown: 10,
     isOwn: true,
     hp: 100,
     ammo: 1,
@@ -50,8 +50,8 @@ let robotList = [
     id: "robot4",
     name: "fatty cheeks",
     isVisible: false,
-    cooldown: 4,
-    masterCooldown: 4,
+    cooldown: 8,
+    masterCooldown: 8,
     isOwn: false,
     hp: 100,
     ammo: 3,
@@ -62,8 +62,8 @@ let robotList = [
     id: "robot5",
     name: "thunder thighs",
     isVisible: false,
-    cooldown: 3,
-    masterCooldown: 3,
+    cooldown: 7,
+    masterCooldown: 7,
     isOwn: false,
     hp: 100,
     ammo: 2,
@@ -113,7 +113,8 @@ const generateBoard = () => {
     generateRow(j);
   }
 }
-generateBoard();
+
+
 
 // MOVE LOGIC
 // get coordinates for robot1 using parent id
@@ -235,10 +236,30 @@ const generateRobot = (name, id, isOwn=true) => {
   $("#player-box").append(playerBox);
 }
 
+const testInsert = (amount) => {
+  let html = "";
+  for (i=0; i < amount; i++){
+    html += `<img class="zap" width="8px" src="img/zap.svg"></img>`;
+  }
+  return html;
+}
+
 const updateBoxes = () => {
   // update player box
   for (robotNumber = 0; robotNumber < robotList.length; robotNumber++){
-    $("#box-"+robotList[robotNumber].id).html(`<p><b>${robotList[robotNumber].name}</b></p><p>Cooldown: ${robotList[robotNumber].cooldown}</p><p>HP: ${robotList[robotNumber].hp}</p><p>Ammo: ${robotList[robotNumber].ammo}</p>`);
+    let amount = robotList[robotNumber].ammo;
+    $("#box-"+robotList[robotNumber].id).html(`<p><b>${robotList[robotNumber].name}</b></p>
+      <div class="row attr-font"><div class="col-3">HP
+    </div><div class="col-9"><div class="progress" style="height: 0.5rem;">
+  <div id="${robotList[robotNumber].id}-health" class="progress-bar bg-danger" role="progressbar" style="width: ${robotList[robotNumber].hp}%"></div>
+</div></div></div>
+
+<div class="row attr-font"><div class="col-3">Cooldown</div><div class="col-9">
+<div class="progress" style="height: 0.5rem; width: ${robotList[robotNumber].masterCooldown * 10}%">
+<div id="${robotList[robotNumber].id}-cooldown" class="progress-bar" role="progressbar" style="width: ${robotList[robotNumber].cooldown * 10}%"></div>
+</div></div></div>
+
+<div class="row attr-font"><div class="col-3">Ammo</div><div class="col-9">${testInsert(amount)}</div></div>`);
   }
 }
 
@@ -297,27 +318,31 @@ const checkDead = (robotPosition) => {
 
     // kill player-box (front-end)
     let id = robotList[robotPosition].id;
-    $("#box-robot4").css('border', 0).css("cursor", "auto").css("opacity", 0.5);
-    $("#box-robot5").css('border', 0).css("cursor", "auto").css("opacity", 0.5);
-    $("#box-" + id).css("opacity", 0.1).css('border', 0);
+    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
+    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
+    $("#box-" + id).css("opacity", 0.1);
     // need to improve
     $("#" + id).css("background", "rgba(255,0,0, 0.6)").css("opacity", 0.5);
 
     return true;
   } else {
     // let id = robotList[robotPosition].id;
-    $("#box-robot4").css('border', 0).css("cursor", "auto").css("opacity", 0.5);
-    $("#box-robot5").css('border', 0).css("cursor", "auto").css("opacity", 0.5);
+    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
+    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
     return false;
   }
 }
 
 const attack = (attacker, defender) => {
-
+  let action;
+  let message;
+  let damage;
   attackPosition = retriveRobotPosition(attacker);
   // reload gun is ammo is empty
   if (robotList[attackPosition].ammo === 0) {
     console.log("reloading");
+    action = `${robotList[defendPosition].name} is unscathed.`;
+    message = "Turn was spent reloading";
     robotList[attackPosition].ammo = robotList[attackPosition].ammoCap;
   } else {
     defendPosition = retriveRobotPosition(defender);
@@ -329,25 +354,36 @@ const attack = (attacker, defender) => {
     console.log("random", randomNumber);
     console.log("score", accuracyScore);
 
+
     if (accuracyScore < randomNumber) {
       console.log(`attack missed!`);
+      damage = 0;
+      message = 'Attack missed';
       robotList[attackPosition].ammo += -1;
       checkDead(defendPosition);
     } else if ((accuracyScore - randomNumber) > 50) {
       console.log('critical hit!');
+      action = `${robotList[defendPosition].name} is unscathed.`;
+      message = 'Critical hit!';
       robotList[attackPosition].ammo += -1;
-      let damage = getNumber(20, 40) * 2;
+      damage = getNumber(20, 40) * 2;
       robotList[defendPosition].hp += - damage;
       console.log("dmg", damage);
       checkDead(defendPosition);
     } else {
       console.log('hit!');
+      action = `${robotList[defendPosition].name} is unscathed.`;
+      message = 'Hit!';
       robotList[attackPosition].ammo += -1;
-      let damage = getNumber(20, 40);
+      damage = getNumber(20, 40);
       robotList[defendPosition].hp += - damage;
       console.log("dmg", damage);
       checkDead(defendPosition);
     }
+    action = `${robotList[attackPosition].name} dealt ${damage} damage to ${robotList[defendPosition].name}`;
+    $("#battleText1").text(action);
+    $("#battleText2").text(message);
+    $("#battleModal").modal("show");
   }
   updateBoxes();
 
@@ -413,183 +449,216 @@ const getNextTurn = (forceSkip=false) => {
   }
 }
 
-for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
-  generateRobot(robotList[robotNumber].name, robotList[robotNumber].id, robotList[robotNumber].isOwn);
-}
+// show Modal
+$("#mainModal").modal("toggle");
 
-console.log(matrix);
+$('#mainModal').on('hidden.bs.modal', function (e) {
+  // e.preventDefault();
+  console.log($("#user1input").val());
+  if ($("#user1input").val() !== undefined) {
+    robotList[0].name = $("#user1input").val();
+  }
+  if ($("#user2input").val() !== undefined) {
+    robotList[1].name = $("#user2input").val();
+  }
+  if ($("#user3input").val() !== undefined) {
+    robotList[2].name = $("#user3input").val();
+  }
+  // console.log($("#user1input").value);
+  // console.log($("#user2input").value);
+  // console.log($("#user3input").value);
+  generateBoard();
+  for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
+    generateRobot(robotList[robotNumber].name, robotList[robotNumber].id, robotList[robotNumber].isOwn);
+  }
 
-// add event listener for keystrokes
-$("body").keydown((e) => {
-  if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
-    e.preventDefault();
-    // do nothing is modal is showing
-    if(gameState === "pause"){
-      // get Position of the current robot
-      robotPosition = getPosition(currentRobot.id);
-      console.log("original_position", robotPosition);
-      currentRow = parseInt(robotPosition[0]);
-      currentColumn = parseInt(robotPosition[1]);
+  console.log(matrix);
 
-      // up
-      if (e.keyCode === 38) {
-        let nextRow = currentRow - 1;
-        if (checkMove(nextRow, currentColumn)) {
-          // set matrix back to original value
-          matrix[currentRow - 1][currentColumn - 1] = null;
-          // update front end
-          $("#" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
-          // update matrix
-          matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
-          // update FOG
-          removeFog(nextRow, currentColumn);
-          // resume game
+  // add event listener for keystrokes
+  $("body").keydown((e) => {
+    // e.preventDefault();
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+      e.preventDefault();
+      // do nothing is modal is showing
+      if(gameState === "pause"){
+        // get Position of the current robot
+        robotPosition = getPosition(currentRobot.id);
+        console.log("original_position", robotPosition);
+        currentRow = parseInt(robotPosition[0]);
+        currentColumn = parseInt(robotPosition[1]);
 
-          getNextTurn();
-          updateBoxes();
-          gameState="live";
-          $("#movebutton").prop('disabled', false);
+        // up
+        if (e.keyCode === 38) {
+          let nextRow = currentRow - 1;
+          if (checkMove(nextRow, currentColumn)) {
+            // set matrix back to original value
+            matrix[currentRow - 1][currentColumn - 1] = null;
+            // update front end
+            $("#" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
+            // update matrix
+            matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
+            // update FOG
+            removeFog(nextRow, currentColumn);
+            // resume game
 
+            getNextTurn();
+            updateBoxes();
+            gameState="live";
+            $("#movebutton").prop('disabled', false);
+
+          }
         }
-      }
 
-      // right
-      if (e.keyCode === 39) {
-        let nextColumn = currentColumn + 1;
-        if (checkMove(currentRow, nextColumn)) {
-          // set matrix back to original value
-          matrix[currentRow - 1][currentColumn - 1] = null;
-          // update front end
-          $("#" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
-          // update matrix
-          matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
-          // update FOG
-          removeFog(currentRow, nextColumn);
-          // resume game
-          getNextTurn();
-          updateBoxes();
-          gameState="live";
-          $("#movebutton").prop('disabled', false);
+        // right
+        if (e.keyCode === 39) {
+          let nextColumn = currentColumn + 1;
+          if (checkMove(currentRow, nextColumn)) {
+            // set matrix back to original value
+            matrix[currentRow - 1][currentColumn - 1] = null;
+            // update front end
+            $("#" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
+            // update matrix
+            matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
+            // update FOG
+            removeFog(currentRow, nextColumn);
+            // resume game
+            getNextTurn();
+            updateBoxes();
+            gameState="live";
+            $("#movebutton").prop('disabled', false);
+          }
         }
-      }
 
-      // down
-      if (e.keyCode === 40) {
-        let nextRow = currentRow + 1;
-        if (checkMove(nextRow, currentColumn)) {
-          // set matrix back to original value
-          matrix[currentRow - 1][currentColumn - 1] = null;
-          // update front end
-          $("#" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
-          // update matrix
-          matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
-          // update FOG
-          removeFog(nextRow, currentColumn);
-          // resume game
-          getNextTurn();
-          updateBoxes();
-          gameState="live";
-          $("#movebutton").prop('disabled', false);
+        // down
+        if (e.keyCode === 40) {
+          let nextRow = currentRow + 1;
+          if (checkMove(nextRow, currentColumn)) {
+            // set matrix back to original value
+            matrix[currentRow - 1][currentColumn - 1] = null;
+            // update front end
+            $("#" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
+            // update matrix
+            matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
+            // update FOG
+            removeFog(nextRow, currentColumn);
+            // resume game
+            getNextTurn();
+            updateBoxes();
+            gameState="live";
+            $("#movebutton").prop('disabled', false);
+          }
         }
-      }
 
-      // left
-      if (e.keyCode === 37) {
-        let nextColumn = currentColumn - 1;
-        if (checkMove(currentRow, nextColumn)) {
-          // set matrix back to original value
-          matrix[currentRow - 1][currentColumn - 1] = null;
-          // update front end
-          $("#" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
-          // update matrix
-          matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
-          // update FOG
-          removeFog(currentRow, nextColumn);
-          // resume game
-          getNextTurn();
-          updateBoxes();
-          gameState="live";
-          $("#movebutton").prop('disabled', false);
+        // left
+        if (e.keyCode === 37) {
+          let nextColumn = currentColumn - 1;
+          if (checkMove(currentRow, nextColumn)) {
+            // set matrix back to original value
+            matrix[currentRow - 1][currentColumn - 1] = null;
+            // update front end
+            $("#" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
+            // update matrix
+            matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
+            // update FOG
+            removeFog(currentRow, nextColumn);
+            // resume game
+            getNextTurn();
+            updateBoxes();
+            gameState="live";
+            $("#movebutton").prop('disabled', false);
+          }
         }
-      }
 
-      robotPosition = getPosition(currentRobot.id);
-      console.log("new_position", robotPosition);
+        robotPosition = getPosition(currentRobot.id);
+        console.log("new_position", robotPosition);
+      }
     }
-  }
-});
+  });
 
-// add event listners for buttons
-$("#skipbutton").click(() => {
-  // gameState = "pause";
-  console.log("skip button clicked");
-  getNextTurn();
-  updateBoxes();
-  gameState="live";
-  $("#movebutton").prop('disabled', false);
-});
+  // add event listners for buttons
+  $("#skipbutton").click(() => {
+    // gameState = "pause";
+    console.log("skip button clicked");
+    getNextTurn();
+    updateBoxes();
+    gameState="live";
+    $("#movebutton").prop('disabled', false);
+  });
 
-$("#attackbutton").click(() => {
-  gameState = "pause";
-  console.log("attack clicked");
-  // make visible enemies clickable
-  selectEnemy = true;
-  // turn on border for selectable enemies
-  if (!robotList[3].isDead && robotList[3].isVisible) {
-    $("#box-robot4").css('border', "2px solid red").css("border-radius", "8px").css("cursor", "pointer").css("opacity", 0.8);
-  }
-  if (!robotList[4].isDead && robotList[4].isVisible) {
-    $("#box-robot5").css('border', "2px solid red").css("border-radius", "8px").css("cursor", "pointer").css("opacity", 0.8);
-  }
-  $("#attackbutton").prop('disabled', false);
-});
+  $("#attackbutton").click(() => {
+    gameState = "pause";
+    console.log("attack clicked");
+    // make visible enemies clickable
+    selectEnemy = true;
+    // turn on background for selectable enemies
+    if (!robotList[3].isDead && robotList[3].isVisible) {
+      $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8);
+    }
+    if (!robotList[4].isDead && robotList[4].isVisible) {
+      $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8);
+    }
+    $("#attackbutton").prop('disabled', false);
+  });
 
-$("#movebutton").click(() => {
-  gameState = "pause";
-  console.log("move clicked");
-  $("#movebutton").prop('disabled', true);
-});
+  $("#movebutton").click(() => {
+    gameState = "pause";
+    console.log("move clicked");
+    $("#movebutton").prop('disabled', true);
+  });
 
-$("#box-robot4").click(() => {
-  if (selectEnemy) {
-    selectEnemy = false;
-    // console.log(`${currentRobot.id} attacked robot4.`);
-    attack(currentRobot.id, "robot4");
+  $("#box-robot4").click(() => {
+    if (selectEnemy) {
+      selectEnemy = false;
+      // console.log(`${currentRobot.id} attacked robot4.`);
+      attack(currentRobot.id, "robot4");
+      getNextTurn();
+    }
+  });
+
+  $("#box-robot5").click(() => {
+    if (selectEnemy) {
+      selectEnemy = false;
+    // console.log(`${currentRobot.id} attacked robot5.`);
+    attack(currentRobot.id, "robot5");
     getNextTurn();
   }
-});
+  });
 
-$("#box-robot5").click(() => {
-  if (selectEnemy) {
-    selectEnemy = false;
-  // console.log(`${currentRobot.id} attacked robot5.`);
-  attack(currentRobot.id, "robot5");
+  // shortcut keys
+  $("body").keydown((e) => {
+    // e.preventDefault();
+    if (e.keyCode === 65) {
+      if(!($("#attackbutton").prop('disabled'))) {
+        $("#attackbutton").click();
+      }
+    } else if (e.keyCode === 77) {
+      if(!($("#movebutton").prop('disabled'))) {
+        $("#movebutton").click();
+      }
+    } else if (e.keyCode === 83) {
+      if(!($("#skipbutton").prop('disabled'))) {
+        $("#skipbutton").click();
+      }
+    } else if (e.keyCode === 13) {
+      if (($("#battleModal").data('bs.modal') || {})._isShown) {
+        $("#battleModal").modal("hide");
+      }
+    }
+
+    $("#user3input").keydown((e) => {
+      // e.preventDefault();
+      console.log(e.value);
+      if (e.keyCode === 13) {
+        console.log("enter");
+      }
+    })
+  });
+
+  // manually initate first turn
   getNextTurn();
-}
-});
-
-// shortcut keys
-$("body").keydown((e) => {
-  if (e.keyCode === 65) {
-    if(!($("#attackbutton").prop('disabled'))) {
-      $("#attackbutton").click();
-    }
-  } else if (e.keyCode === 77) {
-    if(!($("#movebutton").prop('disabled'))) {
-      $("#movebutton").click();
-    }
-  } else if (e.keyCode === 83) {
-    if(!($("#skipbutton").prop('disabled'))) {
-      $("#skipbutton").click();
-    }
-  }
-});
-
-// manually initate first turn
-getNextTurn();
-updateBoxes();
-gameState = "live";
-
+  updateBoxes();
+  gameState = "live";
+})
 
 // getAccuracy("robot1", "robot4");
 

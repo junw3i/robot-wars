@@ -32,23 +32,20 @@
   .red { background-color: red; }
   .black { background-color: black; }
   .modal-content {
-    background-color: #3B444B;
     color: white;
     text-align: center;
     height: 50vh;
   }
   .modal-body {
     height: 80%;
+    font-size: 1rem;
+    color: 	#d63333;
   }
   .modal-footer {
     border-top: 0;
     justify-content: center;
     height: 5rem;
     padding-bottom: 0.4rem;
-  }
-  .modal-body {
-    font-size: 2rem;
-    color: 	#d63333;
   }
 
   .btn-secondary {
@@ -64,8 +61,9 @@
 
   .modal-text {
     margin: 0;
+    width: 70%;
     position: absolute;
-    top: 60%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
   }
@@ -86,6 +84,7 @@
   .player-box {
     height: 14%;
     margin-bottom: 5px;
+    margin-right: 5px;
   }
   p {
     margin-bottom: 2px;
@@ -105,12 +104,46 @@
     justify-content: space-around;
     margin-bottom: 8px;
   }
+
+  .form-group {
+    text-align: left;
+  }
+
+  .form-control {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    margin-bottom: 5px;
+  }
+
+  label {
+    margin-bottom: 2px;
+  }
+  .modal-text h3 {
+    color: black;
+  }
+
+  #battleText2 {
+    font-weight: 600;
+    font-size: 2rem;
+  }
+
+  .progress {
+    border: 1px solid #6c757d;
+    border-radius: 0;
+    margin-top: 4.5px;
+  }
+  .attr-font {
+    font-size: 0.8rem;
+  }
+  .zap {
+    margin-right: 2px;
+  }
   </style>
 </head>
 <body>
-  <button id="stop">STOP</button>
+  <!-- <button id="stop">STOP</button>
   <div id="counter"></div>
-  <br>
+  <img class="zap" width="10px" src="img/zap.svg"></img><img class="zap" width="10px" src="img/zap.svg"></img><img class="zap" width="10px" src="img/zap.svg"></img> -->
 
   <div class="container-fluid">
     <!-- <div class="progress">
@@ -124,7 +157,7 @@
         <div class="row btm-margin">
         <div class="col-8">
           <p><b>TURN</b></p>
-            <h3 id="turn-des">PLAYER 1</h3>
+            <h3 id="turn-des"></h3>
         </div>
         <div class="col-4">
           <img id="avatar"/>
@@ -145,12 +178,38 @@
     <div class="modal-content">
       <div class="modal-body">
         <div class="modal-text">
+          <h3>PREPARE YOUR ROBOTS!</h3>
+          <form>
+            <div class="form-group">
+              <label for="user1">Name your first robot</label>
+              <input type="text" class="form-control" id="user1input"  placeholder="PoopiePie" autofocus>
+              <label for="user2">Name your second robot</label>
+              <input type="text" class="form-control" id="user2input"  placeholder="BabyFace">
+              <label for="user3">Name your third robot</label>
+              <input type="text" class="form-control" id="user3input"  placeholder="SillyWilly">
+            </div>
+            <button id="okbutton" type="submit" class="btn btn-dark" data-dismiss="modal">OK</button>
+          </form>
+        </div>
+      </div>
+      <!-- <div class="modal-footer">
+
+      </div> -->
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="battleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="modal-text">
+          <div id="battleText2"></div>
+          <div id="battleText1"></div>
         </div>
       </div>
       <div class="modal-footer">
-        <!-- <button id="skipbutton" type="button" class="btn btn-secondary" data-dismiss="modal" onclick="getNextTurn(true)">SKIP</button>
-        <button id="attackbutton" type="button" class="btn btn-secondary" data-dismiss="modal">ATTACK</button>
-        <button id="okbutton" type="button" class="btn btn-secondary" data-dismiss="modal">MOVE</button> -->
+        <button id="okBattle" type="button" class="btn btn-dark" data-dismiss="modal">OK</button>
       </div>
     </div>
   </div>
