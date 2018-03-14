@@ -20,7 +20,8 @@ let robotList = [
     hp: 100,
     ammo: 3,
     ammoCap: 3,
-    isDead: false
+    isDead: false,
+    class: "scout"
   },
   {
     id: "robot2",
@@ -32,7 +33,8 @@ let robotList = [
     hp: 100,
     ammo: 2,
     ammoCap: 3,
-    isDead: false
+    isDead: false,
+    class: "riflebot"
   },
   {
     id: "robot3",
@@ -44,7 +46,8 @@ let robotList = [
     hp: 100,
     ammo: 1,
     ammoCap: 1,
-    isDead: false
+    isDead: false,
+    class: "sniper"
   },
   {
     id: "robot4",
@@ -56,7 +59,8 @@ let robotList = [
     hp: 100,
     ammo: 3,
     ammoCap: 3,
-    isDead: false
+    isDead: false,
+    class: "riflebot"
   },
   {
     id: "robot5",
@@ -68,7 +72,8 @@ let robotList = [
     hp: 100,
     ammo: 2,
     ammoCap: 2,
-    isDead: false
+    isDead: false,
+    class: "riflebot"
   }
 ];
 
@@ -236,7 +241,7 @@ const generateRobot = (name, id, isOwn=true) => {
   $("#player-box").append(playerBox);
 }
 
-const testInsert = (amount) => {
+const imgInsert = (amount) => {
   let html = "";
   for (i=0; i < amount; i++){
     html += `<img class="zap" width="8px" src="img/zap.svg"></img>`;
@@ -248,7 +253,8 @@ const updateBoxes = () => {
   // update player box
   for (robotNumber = 0; robotNumber < robotList.length; robotNumber++){
     let amount = robotList[robotNumber].ammo;
-    $("#box-"+robotList[robotNumber].id).html(`<p><b>${robotList[robotNumber].name}</b></p>
+    $("#box-"+robotList[robotNumber].id).html(`<div class="row"><div class="col-12 flex"><div><b>${robotList[robotNumber].name}</b></div><div><sup>${robotList[robotNumber].class}</sup></div></div></div>
+
       <div class="row attr-font"><div class="col-3">HP
     </div><div class="col-9"><div class="progress" style="height: 0.5rem;">
   <div id="${robotList[robotNumber].id}-health" class="progress-bar bg-danger" role="progressbar" style="width: ${robotList[robotNumber].hp}%"></div>
@@ -259,7 +265,7 @@ const updateBoxes = () => {
 <div id="${robotList[robotNumber].id}-cooldown" class="progress-bar" role="progressbar" style="width: ${robotList[robotNumber].cooldown * 10}%"></div>
 </div></div></div>
 
-<div class="row attr-font"><div class="col-3">Ammo</div><div class="col-9">${testInsert(amount)}</div></div>`);
+<div class="row attr-font"><div class="col-3">Ammo</div><div class="col-9">${imgInsert(amount)}</div></div>`);
   }
 }
 
