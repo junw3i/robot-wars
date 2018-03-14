@@ -9,6 +9,9 @@ let progressDirection = true;
 let gameCounter = true; // game counter for turns
 let gameState = "live";
 let selectEnemy = false;
+let gameWin = false;
+let gameLose = false;
+let modalQueue = [];
 let robotList = [
   {
     id: "robot1",
@@ -166,7 +169,7 @@ const updateVisible = (row, column) => {
       if (robotList[botNumber].id === robotId && (!robotList[botNumber].isVisible)) {
         robotList[botNumber].isVisible = true;
         $("#attackbutton").prop('disabled', false);
-        $("#box-" + robotList[botNumber].id).css("visibility", "visible");
+        $("#box-" + robotList[botNumber].id).show(1000);
         console.log(`Enemy ${robotList[botNumber].name} is now visible!`);
       }
     }
@@ -228,18 +231,24 @@ const generateRobot = (name, id, isOwn=true) => {
   console.log(`${id} generated`);
 
   // add empty player box
-  let playerBox = document.createElement('div');
-  playerBox.id = "box-" + id;
-  // playerBox.classList.add("row");
-  playerBox.classList.add("player-box");
-
-  playerBox.style.opacity = 0.5;
-  // hide box if robot is not own
   if (!isOwn) {
-    playerBox.style.visibility = "hidden";
+    $("#player-box").append(
+      $('<div></div>').attr("id", "box-" + id).addClass("player-box").css("opacity", 0.5).hide()
+    );
+    $("#" + rowNumber + "-" + colNumber).css("background-color","#44023f");
+  } else {
+    $("#player-box").append(
+      $('<div></div>').attr("id", "box-" + id).addClass("player-box").css("opacity", 0.5)
+    )
   }
-  $("#player-box").append(playerBox);
 }
+
+const modalMessage = (title, message) => {
+  $("#battleText1").text(message);
+  $("#battleText2").text(title);
+  $("#battleModal").modal("show");
+}
+
 
 const imgInsert = (amount) => {
   let html = "";
@@ -324,17 +333,17 @@ const checkDead = (robotPosition) => {
 
     // kill player-box (front-end)
     let id = robotList[robotPosition].id;
-    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
+    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );;
     $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
-    $("#box-" + id).css("opacity", 0.1);
+    $("#box-" + id).css("opacity", 0.1).off( "mouseenter mouseleave" );;
     // need to improve
     $("#" + id).css("background", "rgba(255,0,0, 0.6)").css("opacity", 0.5);
 
     return true;
   } else {
     // let id = robotList[robotPosition].id;
-    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
-    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
+    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );;
+    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );;
     return false;
   }
 }
@@ -347,8 +356,8 @@ const attack = (attacker, defender) => {
   // reload gun is ammo is empty
   if (robotList[attackPosition].ammo === 0) {
     console.log("reloading");
-    action = `${robotList[defendPosition].name} is unscathed.`;
-    message = "Turn was spent reloading";
+    action = `${robotList[attackPosition].name} is out of bullets.`;
+    message = "Reloading..";
     robotList[attackPosition].ammo = robotList[attackPosition].ammoCap;
   } else {
     defendPosition = retriveRobotPosition(defender);
@@ -387,17 +396,21 @@ const attack = (attacker, defender) => {
       checkDead(defendPosition);
     }
     action = `${robotList[attackPosition].name} dealt ${damage} damage to ${robotList[defendPosition].name}`;
-    $("#battleText1").text(action);
-    $("#battleText2").text(message);
-    $("#battleModal").modal("show");
+
   }
+  modalQueue.push([message, action]);
+  // $("#battleText1").text(action);
+  // $("#battleText2").text(message);
+  // $("#battleModal").modal("show");
   updateBoxes();
 
 }
 
 //////////// CORE FUNCTION //////////
-const getNextTurn = (forceSkip=false) => {
-  console.log("forceskip: ", forceSkip);
+const getNextTurn = () => {
+  if (modalQueue.length > 0) {
+    modalMessage(modalQueue[0][0], modalQueue[0][1]);
+  }
   gameState = "live";
   console.log("game_state: ", gameState);
   while (gameState === "live") {
@@ -407,6 +420,22 @@ const getNextTurn = (forceSkip=false) => {
         if (robotList[robotNumber].cooldown > 0) {
           robotList[robotNumber].cooldown += -1;
         }
+      }
+    }
+
+    // execute all non-player turns
+    for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
+      if (robotList[robotNumber].isVisible && !robotList[robotNumber].isOwn && !robotList[robotNumber].isDead && robotList[robotNumber].cooldown <= 0) {
+        robotList[robotNumber].cooldown = robotList[robotNumber].masterCooldown;
+        console.log(`${robotList[robotNumber].name} just made a move!`);
+        // roll random number
+        let attackNumber = getNumber(0, 2);
+        while (robotList[attackNumber].isDead === true) {
+          attackNumber = getNumber(0, 2);
+          console.log("attack number", attackNumber);
+        }
+        console.log(robotList[attackNumber].id);
+        attack(robotList[robotNumber].id, robotList[attackNumber].id);
       }
     }
 
@@ -438,20 +467,33 @@ const getNextTurn = (forceSkip=false) => {
         break;
       }
     }
-    // execute all non-player turns
-    for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
-      if (robotList[robotNumber].isVisible && !robotList[robotNumber].isOwn && !robotList[robotNumber].isDead && robotList[robotNumber].cooldown <= 0) {
-        robotList[robotNumber].cooldown = robotList[robotNumber].masterCooldown;
-        console.log(`${robotList[robotNumber].name} just made a move!`);
-        // roll random number
-        let attackNumber = getNumber(0, 2);
-        while (robotList[attackNumber].isDead === true) {
-          attackNumber = getNumber(0, 2);
+      // check for end game
+      let ownDeadCount = 0;
+      let enemyDeadCount = 0;
+      for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
+        if (robotList[robotNumber].isDead) {
+          if (robotList[robotNumber].isOwn) {
+            ownDeadCount += 1;
+          } else {
+            enemyDeadCount +=1;
+          }
         }
-        console.log(robotList[attackNumber].id);
-        attack(robotList[robotNumber].id, robotList[attackNumber].id);
       }
-    }
+      if (ownDeadCount >= 3) {
+        gameState = "pause";
+        console.log("game over. you lost");
+        // $("#battleText1").text("You lost!");
+        // $("#battleText2").text("GAME OVER");
+        // $("#battleModal").modal("show");
+        modalQueue.push(["GAME OVER", "You lost!"]);
+      } else if (enemyDeadCount >= 2) {
+        gameState = "pause";
+        console.log("game over. you won");
+        // $("#battleText1").text("You won!");
+        // $("#battleText2").text("GAME OVER");
+        // $("#battleModal").modal("show");
+        modalQueue.push(["GAME OVER", "You won!"]);
+      }
   }
 }
 
@@ -479,6 +521,15 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
   }
 
   console.log(matrix);
+
+  // event listner for modal queue
+  $('#battleModal').on('hidden.bs.modal', function (e) {
+    console.log("modal closed!");
+    modalQueue.shift();
+    if (modalQueue.length > 0) {
+      modalMessage(modalQueue[0][0], modalQueue[0][1]);
+    }
+  });
 
   // add event listener for keystrokes
   $("body").keydown((e) => {
@@ -597,11 +648,21 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
     // make visible enemies clickable
     selectEnemy = true;
     // turn on background for selectable enemies
+    // set on hover to  #e59090
     if (!robotList[3].isDead && robotList[3].isVisible) {
-      $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8);
+      $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
+        $(this).css("background-color","#e59090");
+      }, function() {
+        $(this).css("background-color","#EFBCBC");
+      }
+    );
     }
     if (!robotList[4].isDead && robotList[4].isVisible) {
-      $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8);
+      $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
+        $(this).css("background-color","#e59090");
+      }, function() {
+        $(this).css("background-color","#EFBCBC")
+});
     }
     $("#attackbutton").prop('disabled', false);
   });
