@@ -143,31 +143,51 @@
     justify-content: space-between;
   }
 
+
   .grass > div {
-    animation:breeze 8s cubic-bezier(.8,-0.5,.25,1.5) infinite;
-    background-color:#0b0;
-    border-right:solid 5px #0c0;
-    border-top-right-radius:100%;
-    bottom:0;
-    position: absolute;
-    transform-origin:bottom;
-    transition:all 100ms ease-in-out;
-    width:3px;
-  }
+  animation:breeze 8s cubic-bezier(.8,-0.5,.25,1.5) infinite;
+  background-color:#0b0;
+  border-right:solid 5px #0c0;
+  border-top-right-radius:100%;
+  bottom:0;
+  position: absolute;
+  transform-origin:bottom;
+  transition:all 100ms ease-in-out;
+  width:3px;
+}
 
-  @keyframes breeze {
-    0%, 100% {
-      transform:auto;
-    }
-    50% {
-      transform:rotate(5deg);
-    }
+@keyframes breeze {
+  0%, 100% {
+    transform:auto;
   }
+  50% {
+    transform:rotate(5deg);
+  }
+}
 
+.sun {
+  background-color:#fff;
+  border-radius:50%;
+  box-shadow:0 0 10vh 10vh #fff;
+  height:10vh;
+  position:fixed;
+  right:2vh;
+  top:2vh;
+  width:10vh;
+}
+
+.cube {
+    width: 80px;
+    height: 80px;
+    position: relative;
+}
 
   </style>
 </head>
 <body>
+  <div class="cube">
+    <div class="grass"></div>
+  </div>
 
   <!-- <button id="stop">STOP</button>
   <div id="counter"></div>
@@ -220,6 +240,9 @@
           </form>
         </div>
       </div>
+      <!-- <div class="modal-footer">
+
+      </div> -->
     </div>
   </div>
 </div>
@@ -239,6 +262,7 @@
     </div>
   </div>
 </div>
+
 </div>
 
 
@@ -248,7 +272,7 @@
   crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-<script src="js/main.js"></script>
+<script src="js/test.js"></script>
 <!-- <script src="js/test.js"></script> -->
 </body>
 </html>

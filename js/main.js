@@ -56,8 +56,8 @@ let robotList = [
     id: "robot4",
     name: "fatty cheeks",
     isVisible: false,
-    cooldown: 8,
-    masterCooldown: 8,
+    cooldown: 6,
+    masterCooldown: 6,
     isOwn: false,
     hp: 100,
     ammo: 3,
@@ -73,8 +73,8 @@ let robotList = [
     masterCooldown: 7,
     isOwn: false,
     hp: 100,
-    ammo: 2,
-    ammoCap: 2,
+    ammo: 4,
+    ammoCap: 4,
     isDead: false,
     class: "advanced riflebot"
   }
@@ -104,7 +104,7 @@ const generateRow = (rowNumber) => {
   row = [];
   for (i=1; i<=gameColumns; i++) {
     let color = isDark ? "dark" : "light";
-    let grid = $("<div></div>").attr('id', j + "-" + i).addClass(color).addClass("square").css("visibility", "hidden");
+    let grid = $("<div></div>").attr('id', "g" + j + "-" + i).addClass(color).addClass("square").css("visibility", "hidden").css("position", "relative");
     isDark = !isDark;
     $("#checker-board").append(grid);
 
@@ -122,12 +122,11 @@ const generateBoard = () => {
   }
 }
 
-
-
 // MOVE LOGIC
 // get coordinates for robot1 using parent id
 const getPosition = (robot) => {
-  let robotPosition = $("#" + robot).parent().attr("id");
+  let robotPositionRaw = $("#" + robot).parent().attr("id");
+  let robotPosition = robotPositionRaw.slice(1);
   robotPosition = robotPosition.split("-");
   return robotPosition;
 }
@@ -159,11 +158,10 @@ const checkMove = (nextRow, nextColumn) => {
 
 // update css visibility
 const updateVisible = (row, column) => {
-  $("#" + row + "-" + column).css("visibility", "visible");
+  $("#g" + row + "-" + column).css("visibility", "visible");
   // update robots to isVisible
-  let robotId = $("#" + row + "-" + column + "> .robot").attr( "id" );
+  let robotId = $("#g" + row + "-" + column + "> .robot").attr( "id" );
   if(typeof robotId !== "undefined"){
-    // console.log("not undefined", robotId);
     // loop through robotList and update
     for (botNumber = 0; botNumber < robotList.length; botNumber++) {
       if (robotList[botNumber].id === robotId && (!robotList[botNumber].isVisible)) {
@@ -194,10 +192,6 @@ const getNumber = (start, end) => {
   return (Math.floor(Math.random() * (end + 1 - start)) + start);
 };
 
-const test = () => {
-  console.log("test");
-}
-
 // true for personal, false for enemy
 const generateRobot = (name, id, isOwn=true) => {
   let colNumber = getNumber(1, 10);
@@ -224,7 +218,7 @@ const generateRobot = (name, id, isOwn=true) => {
   robotObj.id = id;
   robotObj.classList.add("robot");
   robotObj.setAttribute('src', `https://robohash.org/${name}?size=80x80`);
-  $("#" + rowNumber + "-" + colNumber).append(robotObj);
+  $("#g" + rowNumber + "-" + colNumber).append(robotObj);
 
   // update matrix
   matrix[rowNumber-1][colNumber-1] = id;
@@ -236,7 +230,7 @@ const generateRobot = (name, id, isOwn=true) => {
       $('<div></div>').attr("id", "box-" + id).addClass("player-box").css("opacity", 0.5).hide()
     );
     // add evil background color
-    $("#" + rowNumber + "-" + colNumber).css("background-color","#44023f");
+    $("#g" + rowNumber + "-" + colNumber).css("background-color","#44023f");
   } else {
     $("#player-box").append(
       $('<div></div>').attr("id", "box-" + id).addClass("player-box").css("opacity", 0.5)
@@ -343,8 +337,9 @@ const checkDead = (robotPosition) => {
 
     // kill player-box (front-end)
     let id = robotList[robotPosition].id;
-    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );;
-    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5);
+    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").off( "mouseenter mouseleave" );
+
+    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").off( "mouseenter mouseleave" );
     $("#box-" + id).css("opacity", 0.1).off( "mouseenter mouseleave" );;
     // need to improve
     $("#" + id).css("background", "rgba(255,0,0, 0.6)").css("opacity", 0.5);
@@ -352,8 +347,13 @@ const checkDead = (robotPosition) => {
     return true;
   } else {
     // let id = robotList[robotPosition].id;
-    $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );;
-    $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );;
+    if (!robotList[3].isDead) {
+      $("#box-robot4").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );
+    }
+
+    if (!robotList[4].isDead) {
+      $("#box-robot5").css('background-color', "inherit").css("cursor", "auto").css("opacity", 0.5).off( "mouseenter mouseleave" );
+    }
     return false;
   }
 }
@@ -362,7 +362,20 @@ const attack = (attacker, defender) => {
   let action;
   let message;
   let damage;
+  let inGrass = false;
+
+  // remove active hightlight
+  let currentPos = getPosition(currentRobot.id);
+  $("#g" + currentPos[0] + "-" + currentPos[1]).css("border", 0);
+
   attackPosition = retriveRobotPosition(attacker);
+
+  // set back evil color for enemy (resets onhover overides)
+  let robot4 = getPosition("robot4");
+  let robot5 = getPosition("robot5");
+  $("#g" + robot4[0] + "-" + robot4[1]).css("background-color","#44023f");
+  $("#g" + robot5[0] + "-" + robot5[1]).css("background-color","#44023f");
+
   // reload gun is ammo is empty
   if (robotList[attackPosition].ammo === 0) {
     console.log("reloading");
@@ -373,12 +386,17 @@ const attack = (attacker, defender) => {
     defendPosition = retriveRobotPosition(defender);
     // console.log(attackPosition, defendPosition);
 
+    // check defender is in grass
+    let defCoordinates = getPosition(robotList[defendPosition].id);
+    if ($("#g" + defCoordinates[0] + "-" + defCoordinates[1] + " > .grass").length) {
+      inGrass = true;
+    }
+
     let accuracyScore = getAccuracy(attacker, defender);
     //  attack will miss if random is bigger than score
     let randomNumber = getNumber(10, 90);
     console.log("random", randomNumber);
     console.log("score", accuracyScore);
-
 
     if (accuracyScore < randomNumber) {
       console.log(`attack missed!`);
@@ -391,7 +409,17 @@ const attack = (attacker, defender) => {
       action = `${robotList[defendPosition].name} is unscathed.`;
       message = 'Critical hit!';
       robotList[attackPosition].ammo += -1;
-      damage = getNumber(20, 40) * 2;
+
+      if (!robotList[attackPosition].isOwn) {
+        damage = getNumber(20, 50);
+      } else {
+        damage = getNumber(20, 40);
+      }
+
+      if (inGrass) {
+        damage = Math.floor(damage * 0.6);
+        console.log("damage reduced!");
+      }
       robotList[defendPosition].hp += - damage;
       console.log("dmg", damage);
       checkDead(defendPosition);
@@ -400,7 +428,17 @@ const attack = (attacker, defender) => {
       action = `${robotList[defendPosition].name} is unscathed.`;
       message = 'Hit!';
       robotList[attackPosition].ammo += -1;
-      damage = getNumber(20, 40);
+
+      if (!robotList[attackPosition].isOwn) {
+        damage = getNumber(20, 50);
+      } else {
+        damage = getNumber(20, 40);
+      }
+
+      if (inGrass) {
+        damage = Math.floor(damage * 0.6);
+        console.log("damage reduced!");
+      }
       robotList[defendPosition].hp += - damage;
       console.log("dmg", damage);
       checkDead(defendPosition);
@@ -424,6 +462,7 @@ const getNextTurn = () => {
   gameState = "live";
   console.log("game_state: ", gameState);
   while (gameState === "live") {
+    console.log("turn executed!");
     // reduce cooldown for all visible robots
     for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
       if (robotList[robotNumber].isVisible && !robotList[robotNumber].isDead) {
@@ -466,10 +505,12 @@ const getNextTurn = () => {
 
           currentRobot.id = robotList[robotNumber].id;
           // light up color box for active player
-          $("#box-" + robotList[robotNumber].id).css("background-color", "#d7ecd1");
+          $("#box-" + robotList[robotNumber].id).css("background-color", "#EAFFEE");
           $("#box-" + robotList[robotNumber].id).css("opacity", 1.0);
           $("#avatar").attr("src", `https://robohash.org/${robotList[robotNumber].name}?size=100x100`);
-          // robotObj.setAttribute('src', `https://robohash.org/${name}?size=80x80`);
+          let robotCoordinates = getPosition(robotList[robotNumber].id);
+          $("#g" + robotCoordinates[0] + "-" + robotCoordinates[1]).css("border", "2px solid red");
+
           // reset cooldown
           robotList[robotNumber].cooldown = robotList[robotNumber].masterCooldown;
         }
@@ -492,18 +533,51 @@ const getNextTurn = () => {
       if (ownDeadCount >= 3) {
         gameState = "pause";
         console.log("game over. you lost");
-        // $("#battleText1").text("You lost!");
-        // $("#battleText2").text("GAME OVER");
-        // $("#battleModal").modal("show");
         modalQueue.push(["GAME OVER", "You lost!"]);
+        modalMessage(modalQueue[0][0], modalQueue[0][1]);
       } else if (enemyDeadCount >= 2) {
         gameState = "pause";
         console.log("game over. you won");
-        // $("#battleText1").text("You won!");
-        // $("#battleText2").text("GAME OVER");
-        // $("#battleModal").modal("show");
         modalQueue.push(["GAME OVER", "You won!"]);
       }
+  }
+}
+
+// GENERATE COVER
+const generateCover = (times) => {
+  for (i=0; i<times; i++) {
+    let gRow = getNumber(1, 8);
+    let gCol = getNumber(1, 10);
+    console.log(gRow, gCol);
+
+    // check if grid has grass
+    while ($("#g" + gRow + "-" + gCol + " > .grass").length > 0){
+      console.log("has grass!");
+      gRow = getNumber(1, 8);
+      gCol = getNumber(1, 10);
+      // console.log($("#g" + gRow + "-" + gCol + " > .grass"));
+    }
+    // add grass
+    $("#g" + gRow + "-" + gCol).append($("<div></div>").addClass("grass").attr("id", "grass"+(i+1)));
+    console.log(`grass added at ${gRow, gCol}`);
+    var numberOfBlades = 80;
+
+    function assignRandomStyles(blade) {
+      var randomHeight =  Math.floor(Math.random() * 38);
+      var randomLeft = Math.floor(Math.random() * (78));
+      var randomRotation = Math.floor(Math.random() * 10) - 5;
+      blade.style.height = (randomHeight + 38) + 'px';
+      blade.style.zIndex = randomHeight;
+      blade.style.opacity = randomHeight * 0.02;
+      blade.style.left = randomLeft + 'px';
+      blade.style.transform = 'rotate(' + randomRotation + 'deg)';
+    }
+    for (var j = 0; j < numberOfBlades; j++) {
+      var blade = document.createElement('div');
+      assignRandomStyles(blade);
+      // grass.append(blade);
+      $("#grass" + (i+1)).append(blade);
+    }
   }
 }
 
@@ -526,6 +600,7 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
   // console.log($("#user2input").value);
   // console.log($("#user3input").value);
   generateBoard();
+  generateCover(5);
   for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
     generateRobot(robotList[robotNumber].name, robotList[robotNumber].id, robotList[robotNumber].isOwn);
   }
@@ -559,8 +634,10 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
           if (checkMove(nextRow, currentColumn)) {
             // set matrix back to original value
             matrix[currentRow - 1][currentColumn - 1] = null;
+            // remove active hightlight
+            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
             // update front end
-            $("#" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
+            $("#g" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
             // update matrix
             matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
             // update FOG
@@ -581,8 +658,10 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
           if (checkMove(currentRow, nextColumn)) {
             // set matrix back to original value
             matrix[currentRow - 1][currentColumn - 1] = null;
+            // remove active hightlight
+            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
             // update front end
-            $("#" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
+            $("#g" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
             // update matrix
             matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
             // update FOG
@@ -601,8 +680,10 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
           if (checkMove(nextRow, currentColumn)) {
             // set matrix back to original value
             matrix[currentRow - 1][currentColumn - 1] = null;
+            // remove active hightlight
+            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
             // update front end
-            $("#" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
+            $("#g" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
             // update matrix
             matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
             // update FOG
@@ -621,8 +702,10 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
           if (checkMove(currentRow, nextColumn)) {
             // set matrix back to original value
             matrix[currentRow - 1][currentColumn - 1] = null;
+            // remove active hightlight
+            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
             // update front end
-            $("#" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
+            $("#g" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
             // update matrix
             matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
             // update FOG
@@ -645,6 +728,8 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
   $("#skipbutton").click(() => {
     // gameState = "pause";
     console.log("skip button clicked");
+    let currentPos = getPosition(currentRobot.id);
+    $("#g" + currentPos[0] + "-" + currentPos[1]).css("border", 0);
     getNextTurn();
     updateBoxes();
     gameState="live";
@@ -662,10 +747,10 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
       let robotPos = getPosition("robot4");
       $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
         $(this).css("background-color","#e59090");
-        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
+        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
       }, function() {
         $(this).css("background-color","#EFBCBC");
-        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
+        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
       }
     );
     }
@@ -673,10 +758,10 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
       let robotPos = getPosition("robot5");
       $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
         $(this).css("background-color","#e59090");
-        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
+        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
       }, function() {
         $(this).css("background-color","#EFBCBC");
-        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
+        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
 });
     }
     $("#attackbutton").prop('disabled', false);
