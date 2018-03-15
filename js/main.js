@@ -456,12 +456,13 @@ const attack = (attacker, defender) => {
 
 //////////// CORE FUNCTION //////////
 const getNextTurn = () => {
-  if (modalQueue.length > 0) {
-    modalMessage(modalQueue[0][0], modalQueue[0][1]);
-  }
+
   gameState = "live";
   console.log("game_state: ", gameState);
   while (gameState === "live") {
+    if (modalQueue.length > 0) {
+      modalMessage(modalQueue[0][0], modalQueue[0][1]);
+    }
     console.log("turn executed!");
     // reduce cooldown for all visible robots
     for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
@@ -596,9 +597,6 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
   if ($("#user3input").val() !== undefined) {
     robotList[2].name = $("#user3input").val();
   }
-  // console.log($("#user1input").value);
-  // console.log($("#user2input").value);
-  // console.log($("#user3input").value);
   generateBoard();
   generateCover(5);
   for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
