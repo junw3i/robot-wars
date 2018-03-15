@@ -14,3 +14,5 @@ Robots hidden in the grass will take 40% less damage when shot upon.
 
 ### Combat
 The probability of hitting your target depends on the distance between the attacker and the target. The further the distance, the higher the chance the shot will miss.
+
+When robot's gun is out of ammo, the next attack will be spent reloading.
