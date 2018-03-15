@@ -12,7 +12,6 @@ $('#battleModal').on('hidden.bs.modal', function (e) {
   messageQueue.shift();
   console.log(messageQueue);
   if (messageQueue.length > 0) {
-
     modalMessage(messageQueue[0][0], messageQueue[0][1]);
   }
 });

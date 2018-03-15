@@ -63,7 +63,7 @@ let robotList = [
     ammo: 3,
     ammoCap: 3,
     isDead: false,
-    class: "riflebot"
+    class: "advanced riflebot"
   },
   {
     id: "robot5",
@@ -76,7 +76,7 @@ let robotList = [
     ammo: 2,
     ammoCap: 2,
     isDead: false,
-    class: "riflebot"
+    class: "advanced riflebot"
   }
 ];
 
@@ -235,6 +235,7 @@ const generateRobot = (name, id, isOwn=true) => {
     $("#player-box").append(
       $('<div></div>').attr("id", "box-" + id).addClass("player-box").css("opacity", 0.5).hide()
     );
+    // add evil background color
     $("#" + rowNumber + "-" + colNumber).css("background-color","#44023f");
   } else {
     $("#player-box").append(
@@ -278,7 +279,6 @@ const updateBoxes = () => {
   }
 }
 
-
 // BATTLE LOGIC
 const getDistance = (attackerId, defenderId) => {
   let attacker = getPosition(attackerId);
@@ -298,18 +298,28 @@ const getAccuracy = (attackerId, defenderId) => {
   // 1 - 2 // 3 - 4 // 5 - 6 // 7 - 8 // 9
   let distance = getDistance(attackerId, defenderId);
   let distanceScore;
-  // console.log("distance", distance);
+  // check char class to modify grading bands
+  // riflebot 0 // advanced riflebot +1 // sniper +2 // scout -1
+  let distanceMod = 0;
+  let charClass = robotList[retriveRobotPosition(attackerId)].class;
+  if (charClass === "advanced riflebot") {
+    distanceMod = 1;
+  } else if (charClass === "sniper") {
+    distanceMod = 2;
+  } else if (charClass === "scout") {
+    distanceMod = -1;
+  }
   switch (true) {
-    case 9:
+    case (distance >= 9 + distanceMod):
       distanceScore = 30;
       break;
-    case (distance >= 7):
+    case (distance >= 7 + distanceMod):
       distanceScore = 45;
       break;
-    case (distance >= 5):
+    case (distance >= 5 + distanceMod):
       distanceScore = 60;
       break;
-    case (distance >= 3):
+    case (distance >= 3 + distanceMod):
       distanceScore = 80;
       break;
     default:
@@ -524,7 +534,6 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
 
   // event listner for modal queue
   $('#battleModal').on('hidden.bs.modal', function (e) {
-    console.log("modal closed!");
     modalQueue.shift();
     if (modalQueue.length > 0) {
       modalMessage(modalQueue[0][0], modalQueue[0][1]);
@@ -650,18 +659,24 @@ $('#mainModal').on('hidden.bs.modal', function (e) {
     // turn on background for selectable enemies
     // set on hover to  #e59090
     if (!robotList[3].isDead && robotList[3].isVisible) {
+      let robotPos = getPosition("robot4");
       $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
         $(this).css("background-color","#e59090");
+        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
       }, function() {
         $(this).css("background-color","#EFBCBC");
+        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
       }
     );
     }
     if (!robotList[4].isDead && robotList[4].isVisible) {
+      let robotPos = getPosition("robot5");
       $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
         $(this).css("background-color","#e59090");
+        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
       }, function() {
-        $(this).css("background-color","#EFBCBC")
+        $(this).css("background-color","#EFBCBC");
+        $("#" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
 });
     }
     $("#attackbutton").prop('disabled', false);
