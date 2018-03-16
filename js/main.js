@@ -366,7 +366,8 @@ const attack = (attacker, defender) => {
 
   // remove active hightlight
   let currentPos = getPosition(currentRobot.id);
-  $("#g" + currentPos[0] + "-" + currentPos[1]).css("border", 0);
+  // $("#g" + currentPos[0] + "-" + currentPos[1]).css("border", 0);
+  $(`#${currentRobot.id}`).removeClass(`bounce`);
 
   attackPosition = retriveRobotPosition(attacker);
 
@@ -510,12 +511,18 @@ const getNextTurn = () => {
           $("#box-" + robotList[robotNumber].id).css("opacity", 1.0);
           $("#avatar").attr("src", `https://robohash.org/${robotList[robotNumber].name}?size=100x100`);
           let robotCoordinates = getPosition(robotList[robotNumber].id);
-          $("#g" + robotCoordinates[0] + "-" + robotCoordinates[1]).css("border", "2px solid red");
+          // $("#g" + robotCoordinates[0] + "-" + robotCoordinates[1]).css("border", "2px solid red");
 
           // reset cooldown
           robotList[robotNumber].cooldown = robotList[robotNumber].masterCooldown;
         }
         // stop loop to prevent dupliate resets
+        setTimeout(() => {
+          $(`#${currentRobot.id}`).addClass(`animated infinite`).addClass('bounce');
+          console.log("animated!");
+        }, 500);
+
+
         break;
       }
     }
@@ -581,249 +588,260 @@ const generateCover = (times) => {
     }
   }
 }
+window.onload = function() {
+  // show Modal
+  $("#mainModal").modal("toggle");
 
-// show Modal
-$("#mainModal").modal("toggle");
 
-$('#mainModal').on('hidden.bs.modal', function (e) {
-  // e.preventDefault();
-  console.log($("#user1input").val());
-  if ($("#user1input").val() !== undefined) {
-    robotList[0].name = $("#user1input").val();
-  }
-  if ($("#user2input").val() !== undefined) {
-    robotList[1].name = $("#user2input").val();
-  }
-  if ($("#user3input").val() !== undefined) {
-    robotList[2].name = $("#user3input").val();
-  }
-  generateBoard();
-  generateCover(5);
-  for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
-    generateRobot(robotList[robotNumber].name, robotList[robotNumber].id, robotList[robotNumber].isOwn);
-  }
-
-  console.log(matrix);
-
-  // event listner for modal queue
-  $('#battleModal').on('hidden.bs.modal', function (e) {
-    modalQueue.shift();
-    if (modalQueue.length > 0) {
-      modalMessage(modalQueue[0][0], modalQueue[0][1]);
-    }
-  });
-
-  // add event listener for keystrokes
-  $("body").keydown((e) => {
+  $('#mainModal').on('hidden.bs.modal', function (e) {
     // e.preventDefault();
-    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
-      e.preventDefault();
-      // do nothing is modal is showing
-      if(gameState === "pause"){
-        // get Position of the current robot
-        robotPosition = getPosition(currentRobot.id);
-        console.log("original_position", robotPosition);
-        currentRow = parseInt(robotPosition[0]);
-        currentColumn = parseInt(robotPosition[1]);
+    if ($("#user1input").val() !== undefined) {
+      robotList[0].name = $("#user1input").val();
+    }
+    if ($("#user2input").val() !== undefined) {
+      robotList[1].name = $("#user2input").val();
+    }
+    if ($("#user3input").val() !== undefined) {
+      robotList[2].name = $("#user3input").val();
+    }
+    generateBoard();
+    generateCover(5);
+    for (robotNumber = 0; robotNumber < robotList.length; robotNumber++) {
+      generateRobot(robotList[robotNumber].name, robotList[robotNumber].id, robotList[robotNumber].isOwn);
+    }
 
-        // up
-        if (e.keyCode === 38) {
-          let nextRow = currentRow - 1;
-          if (checkMove(nextRow, currentColumn)) {
-            // set matrix back to original value
-            matrix[currentRow - 1][currentColumn - 1] = null;
-            // remove active hightlight
-            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
-            // update front end
-            $("#g" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
-            // update matrix
-            matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
-            // update FOG
-            removeFog(nextRow, currentColumn);
-            // resume game
+    console.log(matrix);
 
-            getNextTurn();
-            updateBoxes();
-            gameState="live";
-            $("#movebutton").prop('disabled', false);
-
-          }
-        }
-
-        // right
-        if (e.keyCode === 39) {
-          let nextColumn = currentColumn + 1;
-          if (checkMove(currentRow, nextColumn)) {
-            // set matrix back to original value
-            matrix[currentRow - 1][currentColumn - 1] = null;
-            // remove active hightlight
-            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
-            // update front end
-            $("#g" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
-            // update matrix
-            matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
-            // update FOG
-            removeFog(currentRow, nextColumn);
-            // resume game
-            getNextTurn();
-            updateBoxes();
-            gameState="live";
-            $("#movebutton").prop('disabled', false);
-          }
-        }
-
-        // down
-        if (e.keyCode === 40) {
-          let nextRow = currentRow + 1;
-          if (checkMove(nextRow, currentColumn)) {
-            // set matrix back to original value
-            matrix[currentRow - 1][currentColumn - 1] = null;
-            // remove active hightlight
-            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
-            // update front end
-            $("#g" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
-            // update matrix
-            matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
-            // update FOG
-            removeFog(nextRow, currentColumn);
-            // resume game
-            getNextTurn();
-            updateBoxes();
-            gameState="live";
-            $("#movebutton").prop('disabled', false);
-          }
-        }
-
-        // left
-        if (e.keyCode === 37) {
-          let nextColumn = currentColumn - 1;
-          if (checkMove(currentRow, nextColumn)) {
-            // set matrix back to original value
-            matrix[currentRow - 1][currentColumn - 1] = null;
-            // remove active hightlight
-            $("#g" + currentRow + "-" + currentColumn).css("border", 0);
-            // update front end
-            $("#g" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
-            // update matrix
-            matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
-            // update FOG
-            removeFog(currentRow, nextColumn);
-            // resume game
-            getNextTurn();
-            updateBoxes();
-            gameState="live";
-            $("#movebutton").prop('disabled', false);
-          }
-        }
-
-        robotPosition = getPosition(currentRobot.id);
-        console.log("new_position", robotPosition);
+    // event listner for modal queue
+    $('#battleModal').on('hidden.bs.modal', function (e) {
+      modalQueue.shift();
+      if (modalQueue.length > 0) {
+        modalMessage(modalQueue[0][0], modalQueue[0][1]);
       }
-    }
-  });
+    });
 
-  // add event listners for buttons
-  $("#skipbutton").click(() => {
-    // gameState = "pause";
-    console.log("skip button clicked");
-    let currentPos = getPosition(currentRobot.id);
-    $("#g" + currentPos[0] + "-" + currentPos[1]).css("border", 0);
-    getNextTurn();
-    updateBoxes();
-    gameState="live";
-    $("#movebutton").prop('disabled', false);
-  });
+    // add event listener for keystrokes
+    $("body").keydown((e) => {
+      // e.preventDefault();
+      if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+        // do nothing is modal is showing
+        if(gameState === "pause"){
+          // get Position of the current robot
+          robotPosition = getPosition(currentRobot.id);
+          console.log("original_position", robotPosition);
+          currentRow = parseInt(robotPosition[0]);
+          currentColumn = parseInt(robotPosition[1]);
 
-  $("#attackbutton").click(() => {
-    gameState = "pause";
-    console.log("attack clicked");
-    // make visible enemies clickable
-    selectEnemy = true;
-    // turn on background for selectable enemies
-    // set on hover to  #e59090
-    if (!robotList[3].isDead && robotList[3].isVisible) {
-      let robotPos = getPosition("robot4");
-      $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
-        $(this).css("background-color","#e59090");
-        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
-      }, function() {
-        $(this).css("background-color","#EFBCBC");
-        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
+          // up
+          if (e.keyCode === 38) {
+            let nextRow = currentRow - 1;
+            if (checkMove(nextRow, currentColumn)) {
+              // set matrix back to original value
+              matrix[currentRow - 1][currentColumn - 1] = null;
+              // remove active hightlight
+              // $("#g" + currentRow + "-" + currentColumn).css("border", 0);
+              $(`#${currentRobot.id}`).removeClass(`bounce`);
+              console.log("animated!");
+              // update front end
+              $("#g" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
+              // update matrix
+              matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
+              // update FOG
+              removeFog(nextRow, currentColumn);
+              // resume game
+
+              getNextTurn();
+              updateBoxes();
+              gameState="live";
+              $("#movebutton").prop('disabled', false);
+
+            }
+          }
+
+          // right
+          if (e.keyCode === 39) {
+            let nextColumn = currentColumn + 1;
+            if (checkMove(currentRow, nextColumn)) {
+              // set matrix back to original value
+              matrix[currentRow - 1][currentColumn - 1] = null;
+              // remove active hightlight
+              // $("#g" + currentRow + "-" + currentColumn).css("border", 0);
+              $(`#${currentRobot.id}`).removeClass(`bounce`);
+              // update front end
+              $("#g" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
+              // update matrix
+              matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
+              // update FOG
+              removeFog(currentRow, nextColumn);
+              // resume game
+              getNextTurn();
+              updateBoxes();
+              gameState="live";
+              $("#movebutton").prop('disabled', false);
+            }
+          }
+
+          // down
+          if (e.keyCode === 40) {
+            let nextRow = currentRow + 1;
+            if (checkMove(nextRow, currentColumn)) {
+              // set matrix back to original value
+              matrix[currentRow - 1][currentColumn - 1] = null;
+              // remove active hightlight
+              // $("#g" + currentRow + "-" + currentColumn).css("border", 0);
+              $(`#${currentRobot.id}`).removeClass(`bounce`);
+              // update front end
+              $("#g" + nextRow + "-" + currentColumn).append($("#" +  currentRobot.id));
+              // update matrix
+              matrix[nextRow - 1][currentColumn - 1] = currentRobot.id;
+              // update FOG
+              removeFog(nextRow, currentColumn);
+              // resume game
+              getNextTurn();
+              updateBoxes();
+              gameState="live";
+              $("#movebutton").prop('disabled', false);
+            }
+          }
+
+          // left
+          if (e.keyCode === 37) {
+            let nextColumn = currentColumn - 1;
+            if (checkMove(currentRow, nextColumn)) {
+              // set matrix back to original value
+              matrix[currentRow - 1][currentColumn - 1] = null;
+              // remove active hightlight
+              // $("#g" + currentRow + "-" + currentColumn).css("border", 0);
+              $(`#${currentRobot.id}`).removeClass(`bounce`);
+              // update front end
+              $("#g" + currentRow + "-" + nextColumn).append($("#" + currentRobot.id));
+              // update matrix
+              matrix[currentRow - 1][nextColumn - 1] = currentRobot.id;
+              // update FOG
+              removeFog(currentRow, nextColumn);
+              // resume game
+              getNextTurn();
+              updateBoxes();
+              gameState="live";
+              $("#movebutton").prop('disabled', false);
+            }
+          }
+
+          robotPosition = getPosition(currentRobot.id);
+          console.log("new_position", robotPosition);
+        }
       }
-    );
-    }
-    if (!robotList[4].isDead && robotList[4].isVisible) {
-      let robotPos = getPosition("robot5");
-      $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
-        $(this).css("background-color","#e59090");
-        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
-      }, function() {
-        $(this).css("background-color","#EFBCBC");
-        $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
-});
-    }
-    $("#attackbutton").prop('disabled', false);
-  });
+    });
 
-  $("#movebutton").click(() => {
-    gameState = "pause";
-    console.log("move clicked");
-    $("#movebutton").prop('disabled', true);
-  });
+    // add event listners for buttons
+    $("#skipbutton").click(() => {
+      // gameState = "pause";
+      console.log("skip button clicked");
+      let currentPos = getPosition(currentRobot.id);
+      // $("#g" + currentPos[0] + "-" + currentPos[1]).css("border", 0);
+      $(`#${currentRobot.id}`).removeClass(`bounce`);
+      getNextTurn();
+      updateBoxes();
+      gameState="live";
+      $("#movebutton").prop('disabled', false);
+    });
 
-  $("#box-robot4").click(() => {
-    if (selectEnemy) {
-      selectEnemy = false;
-      // console.log(`${currentRobot.id} attacked robot4.`);
-      attack(currentRobot.id, "robot4");
+    $("#attackbutton").click(() => {
+      gameState = "pause";
+      console.log("attack clicked");
+      // make visible enemies clickable
+      selectEnemy = true;
+      // turn on background for selectable enemies
+      // set on hover to  #e59090
+      if (!robotList[3].isDead && robotList[3].isVisible) {
+        let robotPos = getPosition("robot4");
+        $("#box-robot4").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
+          $(this).css("background-color","#e59090");
+          $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
+        }, function() {
+          $(this).css("background-color","#EFBCBC");
+          $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
+        }
+      );
+      }
+      if (!robotList[4].isDead && robotList[4].isVisible) {
+        let robotPos = getPosition("robot5");
+        $("#box-robot5").css('background-color', "#EFBCBC").css("cursor", "pointer").css("opacity", 0.8).hover(function() {
+          $(this).css("background-color","#e59090");
+          $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#e59090");
+        }, function() {
+          $(this).css("background-color","#EFBCBC");
+          $("#g" + robotPos[0] + "-" + robotPos[1]).css("background-color","#44023f");
+  });
+      }
+      $("#attackbutton").prop('disabled', false);
+    });
+
+    $("#movebutton").click(() => {
+      gameState = "pause";
+      console.log("move clicked");
+      $("#movebutton").prop('disabled', true);
+    });
+
+    $("#box-robot4").click(() => {
+      if (selectEnemy) {
+        selectEnemy = false;
+        // console.log(`${currentRobot.id} attacked robot4.`);
+        attack(currentRobot.id, "robot4");
+        getNextTurn();
+      }
+    });
+
+    $("#box-robot5").click(() => {
+      if (selectEnemy) {
+        selectEnemy = false;
+      // console.log(`${currentRobot.id} attacked robot5.`);
+      attack(currentRobot.id, "robot5");
       getNextTurn();
     }
-  });
+    });
 
-  $("#box-robot5").click(() => {
-    if (selectEnemy) {
-      selectEnemy = false;
-    // console.log(`${currentRobot.id} attacked robot5.`);
-    attack(currentRobot.id, "robot5");
-    getNextTurn();
-  }
-  });
-
-  // shortcut keys
-  $("body").keydown((e) => {
-    // e.preventDefault();
-    if (e.keyCode === 65) {
-      if(!($("#attackbutton").prop('disabled'))) {
-        $("#attackbutton").click();
-      }
-    } else if (e.keyCode === 77) {
-      if(!($("#movebutton").prop('disabled'))) {
-        $("#movebutton").click();
-      }
-    } else if (e.keyCode === 83) {
-      if(!($("#skipbutton").prop('disabled'))) {
-        $("#skipbutton").click();
-      }
-    } else if (e.keyCode === 13) {
-      if (($("#battleModal").data('bs.modal') || {})._isShown) {
-        $("#battleModal").modal("hide");
-      }
-    }
-
-    $("#user3input").keydown((e) => {
+    // shortcut keys
+    $("body").keydown((e) => {
       // e.preventDefault();
-      console.log(e.value);
-      if (e.keyCode === 13) {
-        console.log("enter");
+      if (e.keyCode === 65) {
+        if(!($("#attackbutton").prop('disabled'))) {
+          $("#attackbutton").click();
+        }
+      } else if (e.keyCode === 77) {
+        if(!($("#movebutton").prop('disabled'))) {
+          $("#movebutton").click();
+        }
+      } else if (e.keyCode === 83) {
+        if(!($("#skipbutton").prop('disabled'))) {
+          $("#skipbutton").click();
+        }
+      } else if (e.keyCode === 13) {
+        if (($("#battleModal").data('bs.modal') || {})._isShown) {
+          $("#battleModal").modal("hide");
+        }
       }
-    })
-  });
 
-  // manually initate first turn
-  getNextTurn();
-  updateBoxes();
-  gameState = "live";
-})
+      $("#user3input").keydown((e) => {
+        // e.preventDefault();
+        console.log(e.value);
+        if (e.keyCode === 13) {
+          console.log("enter");
+        }
+      })
+    });
+
+    // manually initate first turn
+    getNextTurn();
+    updateBoxes();
+    gameState = "live";
+  })
+
+  $("#user1input").focus();
+  console.log("tried focusing");
+}
+
 
 // getAccuracy("robot1", "robot4");
 
